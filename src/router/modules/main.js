@@ -19,6 +19,9 @@ const Video = () =>
 // 聊天
 const Chat = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/chat');
+// 登录房间
+const LoginRoom = () =>
+    import ( /* webpackChunkName: "LoginRoom" */ '@/views/video/loginRoom');
 // 文件
 const File = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/file');
@@ -57,15 +60,15 @@ export default [{
                     name: 'video',
                     component: Video
                 },
-                // 聊天
+                // 登录房间
                 {
-                    path: 'chat',
-                    name: 'chat',
-                    component: Chat
+                    path: 'loginRoom',
+                    name: 'loginRoom',
+                    component: LoginRoom
                 },
                 // 聊天
                 {
-                    path: 'chat',
+                    path: 'chat/',
                     name: 'chat',
                     component: Chat
                 },

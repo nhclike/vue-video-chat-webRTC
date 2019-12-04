@@ -2,9 +2,8 @@
 <template>
   <div>
     <div>chat</div>
-    <br>
-    <span>用户名</span>
-    <input type="text" v-model="uName">
+    <div>{{joinMsg}}</div>
+    <div>当前有{{numUser}}人</div>
     <br>
     <input type="text" v-model="msg" @keydown.enter="sendMsg()">
     <button type="button" @click="sendMsg()">发送消息</button>
@@ -34,7 +33,9 @@ export default {
           showMsgs:[],
           file:'',
           percentCompleted:0,
-          avatarUrl:''
+          avatarUrl:'',
+          numUser:0,
+          joinMsg:"正在登陆"
         };
     },
     sockets:{
@@ -43,24 +44,44 @@ export default {
         //与socket.io连接后回调
         console.log("socket connected");
       },
+      disconnect:function () {
+        console.log("socket disconnect");
+      },
       //服务端向客户端发送login事件
       login: function(data) {
         //监听login(后端向前端emit  login的回调)
         console.log("服务端向客户端发送login事件");
         console.log(data)
+        this.numUser=data.numUsers;
       },
       //接收服务端返回的消息
-      message:function(data){
+      newMessage:function(data){
         console.log("接收服务端返回的消息");
-        console.log(data);
-        this.showMsgs.push(data);
+        console.log(data.message);
+        this.showMsgs.push(data.message);
       },
       //接收服务端返回的图片
       photoUpload:function (data) {
         console.log("接收服务端返回的消息");
+        console.log(data.message);
+        this.showMsgs.push(data.message);
+      },
+      userJoined:function (data) {
+        console.log("userJoined");
         console.log(data);
-        this.showMsgs.push(data);
+        this.joinMsg=`${data.username}加入会议，当前有${data.numUsers}人`
       }
+    },
+    created(){
+      this.uName=this.$route.query.uName;
+      this.sendToService('addUser',this.uName);
+    },
+    mounted(){
+
+    },
+    destroyed(){
+      console.log("destroyed");
+      this.$socket.close();
     },
     methods:{
       sendToService(name,val) {
@@ -72,7 +93,7 @@ export default {
           uName:this.uName,
           msg:this.msg
         }
-        this.sendToService('message',msgObj)
+        this.sendToService('newMessage',msgObj);
       },
       sendPic(){
         let msgObj={
@@ -85,7 +106,7 @@ export default {
       async submit(){
         const formData = new FormData();
         formData.append('file',this.file);
-        await axios.post('http://127.0.0.1:3000/upload',formData,{
+        await axios.post('http://172.19.82.219:3000/upload',formData,{
           onUploadProgress:(progressEvent)=>{
             var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
             this.percentCompleted = percentCompleted;

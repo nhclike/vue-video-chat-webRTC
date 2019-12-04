@@ -2,35 +2,85 @@ const express = require('express');
 const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
-
+//跨域和文件上传处理
 const cors = require('cors');
 const multer = require('multer');
-let connectCount = 0;
+
+// Chatroom
+
+var numUsers = 0;
+
 io.sockets.on("connection", (socket) => {
-    ++connectCount;
-    console.log("客户端连接成功" + connectCount);
-    socket.emit("login", "login success");
     // socket.emit() ：向建立该连接的客户端广播
     // socket.broadcast.emit() ：向除去建立该连接的客户端的所有客户端广播
     // io.sockets.emit() ：向所有客户端广播，等同于上面两个的和
+    var addedUser = false;
+    // when the client emits 'add user', this listens and executes
+    socket.on('addUser', (username) => {
+        if (addedUser) return;
+        console.log("服务端收到 :" + username + "  addUser消息")
+            // we store the username in the socket session for this client
+        socket.username = username;
+        ++numUsers;
+        addedUser = true;
+        io.sockets.emit('login', {
+            numUsers: numUsers
+        });
+        // echo globally (all clients) that a person has connected
+        io.sockets.emit('userJoined', {
+            username: socket.username,
+            numUsers: numUsers
+        });
+    });
+
 
     //接收到消息时触发
-    socket.on('message', function(data) {
+    socket.on('newMessage', function(data) {
         console.log('服务端收到 : ', data);
         //注意send()方法其实是发送一个 'message' 事件
         //客户端要通过on('message')来响应
-
         //socket.send(data);
-        io.sockets.emit('message', data);
-    });
-    //监听自定义事件
-    socket.on('myevent', function(data) {
-        console.log('客户端发送了一个自定义事件', data);
+        io.sockets.emit('newMessage', {
+            username: socket.username,
+            message: data
+        });
     });
     //监听图片上传事件
     socket.on('photoUpload', function(data) {
-        console.log('客户端发送发送了图片', data);
-        io.sockets.emit('photoUpload', data);
+        console.log('服务端收到 :图片', data);
+        io.sockets.emit('photoUpload', {
+            username: socket.username,
+            message: data
+        });
+    });
+
+
+
+    // when the client emits 'typing', we broadcast it to others
+    socket.on('typing', () => {
+        io.sockets.emit('typing', {
+            username: socket.username
+        });
+    });
+
+    // when the client emits 'stop typing', we broadcast it to others
+    socket.on('stopTyping', () => {
+        io.sockets.emit('stopTyping', {
+            username: socket.username
+        });
+    });
+
+    // when the user disconnects.. perform this
+    socket.on('disconnect', () => {
+        console.log("服务端收到 :" + socket.username + "  disconnect");
+        if (addedUser) {
+            --numUsers;
+            // echo globally that this client has left
+            io.sockets.emit('userLeft', {
+                username: socket.username,
+                numUsers: numUsers
+            });
+        }
     });
     //发生错误时触发
     socket.on('error', function(err) {
@@ -38,12 +88,6 @@ io.sockets.on("connection", (socket) => {
     });
 })
 
-
-
-// 监听连接断开事件
-io.sockets.on("disconnect", () => {
-    console.log("连接已断开...");
-});
 
 // 处理文件上传的请求
 app.use(cors());
@@ -69,12 +113,13 @@ const upload = multer({
 app.post('/upload', upload.single('file'), (req, res) => {
     // 接收到的文件信息
     var file = req.file;
+    console.log("服务端接收到的文件信息")
     console.log(file)
     if (file) {
         // 文件名
         let fileName = file.filename;
         // 拼接文件路径
-        let avatarUrl = '/upload/' + fileName
+        let avatarUrl = 'http://172.19.82.219:8000/upload/' + fileName
 
         res.json({
             code: 1,

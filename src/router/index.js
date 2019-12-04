@@ -5,5 +5,6 @@ import RouterConfig from './modules'; // 引入业务逻辑模块
 import CommonRouters from './comm'; // 引入通用模块
 Vue.use(VueRouter);
 export default new VueRouter({
+    mode: 'history',
     routes: RouterConfig.concat(CommonRouters)
 });
