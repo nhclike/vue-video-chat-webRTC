@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
+
 //跨域和文件上传处理
 const cors = require('cors');
 const multer = require('multer');
@@ -86,6 +87,34 @@ io.sockets.on("connection", (socket) => {
     socket.on('error', function(err) {
         console.log(err);
     });
+
+
+    //加入房间概念
+    //加入房间
+    socket.on('joinRoom', (room) => {
+            socket.join(room);
+            var myRoom = io.sockets.adapter.rooms[room];
+            var users = Object.keys(myRoom.sockets).length;
+            console.log("当前房间有" + users + "人");
+            //socket.emit('joined',room,socket.id); //给本人回
+            //socket.to(room).emit('joined',room,socket.id); //给房间除自己以外的人
+            io.in(room).emit('joined', room, socket.id); //给房间所有人
+
+        })
+        //离开房间       
+    socket.on('leaveRoom', (room) => {
+
+        var myRoom = io.sockets.adapter.rooms[room];
+        var users = Object.keys(myRoom.sockets).length;
+        //users-1
+        socket.leave(room);
+        console.log("当前房间有" + Number(users - 1) + "人");
+
+        //socket.emit('joined',room,socket.id); //给本人回
+        //socket.to(room).emit('joined',room,socket.id); //给房间除自己以外的人
+        io.in(room).emit('leaved', room, socket.id); //给房间所有人
+
+    })
 })
 
 
