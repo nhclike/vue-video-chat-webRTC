@@ -2,8 +2,7 @@
 <template>
   <div>
     <div>chat</div>
-    <div>{{joinMsg}}</div>
-    <div>当前有{{numUser}}人</div>
+    <div v-for="(item,index) in sysMsg" :key="index">{{item}}</div>
     <br>
     <input type="text" v-model="msg" @keydown.enter="sendMsg()">
     <button type="button" @click="sendMsg()">发送消息</button>
@@ -30,12 +29,12 @@ export default {
         return {
           msg:'',
           uName:'',
+          roomNum:0,
           showMsgs:[],
           file:'',
           percentCompleted:0,
           avatarUrl:'',
-          numUser:0,
-          joinMsg:"正在登陆"
+          sysMsg:["正在登陆"]
         };
     },
     sockets:{
@@ -52,7 +51,6 @@ export default {
         //监听login(后端向前端emit  login的回调)
         console.log("服务端向客户端发送login事件");
         console.log(data)
-        this.numUser=data.numUsers;
       },
       //接收服务端返回的消息
       newMessage:function(data){
@@ -69,19 +67,35 @@ export default {
       userJoined:function (data) {
         console.log("userJoined");
         console.log(data);
-        this.joinMsg=`${data.username}加入会议，当前有${data.numUsers}人`
+      },
+      joined:function (data) {
+        console.log("joined")
+        console.log(data);
+        let msg=`${data.username}加入会议室（${data.room}），当前有${data.numUsers}人`;
+        this.sysMsg.push(msg);
+      },
+      leaved:function (data) {
+        console.log("leaved")
+        console.log(data);
+         let msg=`${data.username}离开会议室（${data.room}），当前有${data.numUsers}人`;
+        this.sysMsg.push(msg);
       }
     },
     created(){
       this.uName=this.$route.query.uName;
-      this.sendToService('addUser',this.uName);
+      this.roomNum=this.$route.query.roomNum;
+      this.$socket.emit('joinRoom',this.roomNum,this.uName);
+      //this.sendToService('addUser',this.uName);
     },
     mounted(){
 
     },
     destroyed(){
       console.log("destroyed");
+      this.$socket.emit('leaveRoom',this.roomNum,this.uName);
+
       this.$socket.close();
+
     },
     methods:{
       sendToService(name,val) {

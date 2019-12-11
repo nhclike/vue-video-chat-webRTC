@@ -91,18 +91,25 @@ io.sockets.on("connection", (socket) => {
 
     //加入房间概念
     //加入房间
-    socket.on('joinRoom', (room) => {
+    socket.on('joinRoom', (room, username) => {
+            socket.username = username;
             socket.join(room);
             var myRoom = io.sockets.adapter.rooms[room];
             var users = Object.keys(myRoom.sockets).length;
             console.log("当前房间有" + users + "人");
             //socket.emit('joined',room,socket.id); //给本人回
             //socket.to(room).emit('joined',room,socket.id); //给房间除自己以外的人
-            io.in(room).emit('joined', room, socket.id); //给房间所有人
+            io.in(room).emit('joined', {
+                room: room,
+                socketId: socket.id,
+                numUsers: users,
+                username: socket.username
+            }); //给房间所有人
 
         })
         //离开房间       
-    socket.on('leaveRoom', (room) => {
+    socket.on('leaveRoom', (room, username) => {
+        socket.username = username;
 
         var myRoom = io.sockets.adapter.rooms[room];
         var users = Object.keys(myRoom.sockets).length;
@@ -112,7 +119,12 @@ io.sockets.on("connection", (socket) => {
 
         //socket.emit('joined',room,socket.id); //给本人回
         //socket.to(room).emit('joined',room,socket.id); //给房间除自己以外的人
-        io.in(room).emit('leaved', room, socket.id); //给房间所有人
+        io.in(room).emit('leaved', {
+            room: room,
+            socketId: socket.id,
+            numUsers: users,
+            username: socket.username
+        }); //给房间所有人
 
     })
 })

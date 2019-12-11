@@ -16,6 +16,9 @@ const Home = () =>
 // 视频
 const Video = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/video');
+// 视频互通
+const PeerConnection = () =>
+    import ( /* webpackChunkName: "video" */ '@/views/video/peerconnection');
 // 聊天
 const Chat = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/chat');
@@ -59,6 +62,12 @@ export default [{
                     path: 'video',
                     name: 'video',
                     component: Video
+                },
+                // 视频互通
+                {
+                    path: 'peerConnection',
+                    name: 'peerConnection',
+                    component: PeerConnection
                 },
                 // 登录房间
                 {
