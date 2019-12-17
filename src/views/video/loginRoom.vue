@@ -7,7 +7,7 @@
     <input type="text" v-model="uName">
     <span>房间号</span>
     <input type="Number" v-model="roomNum">
-    <button type="button" @click="joinRoom">进入聊天室</button>
+    <button type="button" @click="joinRoom">进入chat聊天室</button>
   </div>
 </template>
 <script>

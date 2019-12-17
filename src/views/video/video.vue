@@ -1,4 +1,3 @@
-
 <template>
   <div class="video">
     <div class="video__partner">
@@ -86,24 +85,17 @@
         </tr>
       </table>
     </div>
-    <div class="video__partner">
-      <video id="remoteVideo" class="video__spinner" autoplay></video>
-    </div>
   </div>
 </template>
 <script>
 import { log } from "@/utils/logging";
-
-
 export default {
   name: "VideoChat",
-  
   components: {
   },
   data: () => ({
     // videos
     myVideo: {},
-    remoteVideo: {},
 
     //source
     audioSourceOption:[],
@@ -132,11 +124,8 @@ export default {
       }
     },
 
-    // local & remote video stream
-    localStream: undefined,
-    remoteStream: undefined,
-
-    
+    // local video stream
+    localStream: undefined
   }),
   async created() {
     await this.getUserMedia();
@@ -145,8 +134,6 @@ export default {
   },
   mounted() {
     this.myVideo = document.getElementById("localVideo");
-    this.remoteVideo = document.getElementById("remoteVideo");
-
   },
   methods: {
     //拉起本地音视频流
@@ -271,11 +258,13 @@ export default {
         return ;
       }
       this.mediaRecorder.ondataavailable=function (e) {
+        console.log("ondataavailable")
+        console.log(e.data)
         if(e && e.data && e.data.size>0){
           _this.buffer.push(e.data);
         }
       };
-      this.mediaRecorder.start(10);
+      this.mediaRecorder.start();
     },
     //停止录制本地视频
     stopRecord(){
@@ -299,13 +288,8 @@ export default {
       a.click();
     }
   },
-
   watch: {
     
   }
 };
 </script>
-
-<style lang="less" scoped>
-
-</style>

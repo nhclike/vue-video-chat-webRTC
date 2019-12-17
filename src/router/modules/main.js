@@ -19,6 +19,12 @@ const Video = () =>
 // 视频互通
 const PeerConnection = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/peerconnection');
+// 视频互通
+const PeerConnectionSDP = () =>
+    import ( /* webpackChunkName: "video" */ '@/views/video/peerconnectionSDP');
+// 一对一聊天室
+const OneToOne = () =>
+    import ( /* webpackChunkName: "video" */ '@/views/video/oneToOne');
 // 聊天
 const Chat = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/chat');
@@ -68,6 +74,18 @@ export default [{
                     path: 'peerConnection',
                     name: 'peerConnection',
                     component: PeerConnection
+                },
+                // 视频互通
+                {
+                    path: 'peerConnectionSDP',
+                    name: 'peerConnectionSDP',
+                    component: PeerConnectionSDP
+                },
+                // 视频互通
+                {
+                    path: 'oneToOne',
+                    name: 'oneToOne',
+                    component: OneToOne
                 },
                 // 登录房间
                 {

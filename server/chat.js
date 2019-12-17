@@ -1,3 +1,4 @@
+//小程序聊天室和pc端聊天室通讯后台逻辑包含图片数据的相互发送
 const express = require('express');
 const app = express();
 const server = require("http").createServer(app);

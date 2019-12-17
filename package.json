@@ -4,7 +4,8 @@
     "private": true,
     "scripts": {
         "serve": "vue-cli-service serve",
-        "run:server": "node ./server/index.js",
+        "run:server": "node ./server/chat.js",
+        "run:oneToOne": "node ./server/oneToOne.js",
         "build": "vue-cli-service build",
         "lint": "vue-cli-service lint"
     },
