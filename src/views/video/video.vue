@@ -189,6 +189,7 @@ export default {
     async getDisplayMedia(){
       //打开chrome中
       //chrome://flags/#enable-experimental-web-platform-features
+      //getDisplayMedia无法同时采集音频
       let captureStream = null;
 
       try {

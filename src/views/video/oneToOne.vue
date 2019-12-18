@@ -65,12 +65,19 @@ export default {
     roomid:'111111'
   }),
   sockets:{
-      //不能改,建立连接自动调用connect
+      /**
+       * socket自带3个事件connect，disconnect，reconnect
+       * **/
       connect: function() {
         //与socket.io连接后回调
         console.log("socket connected");
       },
-     
+      disconnect:function () {
+        console.log("socket disconnect");
+      },
+      reconnect:function () {
+        console.log("socket reconnect");
+      },
       joined:function (data) {
         console.log("joined",data)
         //加入成功后不能再次连接,可以离开
@@ -109,7 +116,7 @@ export default {
         this.leaveFlag=true;
         console.log("full:state=",this.state);
         alert("rom is full");
-        //this.$socket.disconnect();
+        this.$socket.disconnect();
       },
       leaved:function (data) {
         console.log("leaved:",data)
@@ -223,6 +230,10 @@ export default {
       }
     },
     connServer(){
+      if(this.$socket.disconnected){
+        console.log(this.$socket);
+        this.$socket.connect();
+      }
       this.getUserMedia();
       
     },
@@ -287,7 +298,6 @@ export default {
       }
       //将本地采集的数据添加到PeerConnection，这样在做媒体协商的时候就知道有哪些数据（必须先添加数据再做媒体协商）
       if(this.localStream){
-        console.log("")
         this.localStream.getTracks().forEach((track)=>{
           _this.pc.addTrack(track,this.localStream);
         })

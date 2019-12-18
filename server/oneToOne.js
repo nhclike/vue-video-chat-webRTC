@@ -10,6 +10,7 @@ io.sockets.on("connection", (socket) => {
     // socket.emit() ：向建立该连接的客户端广播
     // socket.broadcast.emit() ：向除去建立该连接的客户端的所有客户端广播
     // io.sockets.emit() ：向所有客户端广播，等同于上面两个的和
+    console.log("服务端收到 connection");
 
     //接收到消息时触发
     socket.on('message', function(room, data) {
@@ -46,13 +47,27 @@ io.sockets.on("connection", (socket) => {
         var users = (myRoom) ? Object.keys(myRoom.sockets).length : 0;
         //users-1
         socket.leave(room);
-        console.log("当前房间有" + Number(users - 1) + "人");
+        console.log("leave：当前房间有" + Number(users - 1) + "人");
 
         socket.emit('leaved', room, socket.id); //给本人回
         socket.to(room).emit('bye', room, socket.id); //给房间除自己以外的人
 
 
     })
+
+    // when the user disconnects.. perform this
+    socket.on('disconnect', () => {
+        console.log("服务端收到 disconnect");
+
+    });
+    socket.on('reconnect', () => {
+        console.log("服务端收到 reconnect");
+
+    });
+    //发生错误时触发
+    socket.on('error', function(err) {
+        console.log(err);
+    });
 })
 
 server.listen(3000, () => {
