@@ -4,8 +4,8 @@
     <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a>
         <span>Peer connection</span></h1>
 
-    <video id="localVideo" playsinline autoplay muted></video>
-    <video id="remoteVideo" playsinline autoplay></video>
+    <video id="localVideo" playsinline autoplay muted width="340px" height="180px"></video>
+    <video id="remoteVideo" playsinline autoplay width="340px" height="180px"></video>
 
     <div> 
         <button id="startButton" @click="start">Start</button>
@@ -48,8 +48,8 @@ export default {
         echoCancellation:true
       },
       video: {
-        width:340,
-        height:280,
+        width:1920,
+        height:1080,
         frameRate:30,
         facingMode:"environment"
       }

@@ -1,5 +1,6 @@
 <template>
   <div class="video">
+    <h2>基本api测试</h2>
     <div class="video__partner">
        <div>
         <label>audio Source</label>
@@ -45,10 +46,10 @@
       <table>
         <tr>
           <td>
-            <video id="localVideo" class="video__myself" autoplay controls></video>
+            <video id="localVideo" class="video__myself" autoplay controls width="340px" height="180px"></video>
           </td>
           <td>
-            <video id="recordLocalVideo" class="video__myself" ref="recordLocalVideo"  controls></video>
+            <video id="recordLocalVideo" class="video__myself" ref="recordLocalVideo"  controls width="340px" height="180px"></video>
           </td>
           <td>
             <div id="constraints" class="output">
@@ -117,8 +118,8 @@ export default {
         echoCancellation:true
       },
       video: {
-        width:340,
-        height:280,
+        width:1920,
+        height:1080,
         frameRate:30,
         facingMode:"environment"
       }

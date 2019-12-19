@@ -1,11 +1,32 @@
 
 <template>
   <div id="container">
-   <h2>一对一视频通讯</h2>
+   <h2>统计数据发送信息数据</h2>
    <div> 
        <button id="connServer" :disabled="connectFlag" @click="connServer">Connect Sig Server</button>
        <button id="leave" :disabled="leaveFlag" @click="leave">leave</button>
 
+    </div>
+    <div>
+       <h3>BindWidth</h3>
+       <select name="" id="bindwidth" @change="changeBW" v-model="selectedBW" :disabled="changeBWFlag">
+          <option disabled value="">请选择</option>
+         <option value="2000">2000</option>
+         <option value="1000">1000</option>
+         <option value="500">500</option>
+         <option value="100">100</option>
+       </select>
+       kbps
+        <br>
+       <span>Selected:{{selectedBW}}</span>
+    </div>
+    <div class="graph-container" id="bitrateGraph">
+      <div>Bittrate</div>
+      <canvas id="bitrateCanvas"></canvas>
+    </div>
+    <div class="graph-container" id="packetGraph">
+      <div>packet sent per second</div>
+      <canvas id="packetCanvas"></canvas>
     </div>
     <div class="content">
       <div class="item">
@@ -23,6 +44,10 @@
 </template>
 <script>
 /**
+ * chrome中webRTC调试
+ * chrome://webrtc-internals
+ * 
+ * 对应后台oneToOne.js
  * 1、消息通讯的连接建立要在音视频数据获取之后，否则会导致有可能绑定音视频流失败
  * 2、当一端退出房间后另外一端的PeerConnection要关闭重建，否则与新用户互通时媒体协商会失败
  * 3、异步事件处理
@@ -62,7 +87,24 @@ export default {
     pc:null,
     state:"init",
 
-    roomid:'111111'
+    roomid:'111111',
+    //改变码率
+    selectedBW:'',
+    /**
+     * 1默认不能改变码率，协商成功后打开
+     * 2对于主叫方是接收到被叫方发送的answer后
+     * 3对于被叫方是创建answer成功后
+     * **/
+    changeBWFlag:true,
+
+    lastResult:null,
+    bitrateGraph:null,
+    bitrateSeries:null,
+
+    packetGraph:null,
+    packetSeries:null
+
+
   }),
   sockets:{
       /**
@@ -149,13 +191,15 @@ export default {
               }).catch((err)=>{
                 console.log("Failed setLocalDescription",err);
               });
+              this.changeBWFlag=false;
               this.sendMessage(this.roomid,desc);
             }).catch((err)=>{
               console.log("Failed to getAnswer");
               console.log(err);
             });
           }else if(data.type=="answer"){
-            console.log("received answer!")
+            console.log("received answer!");
+            this.changeBWFlag=false;
             this.pc.setRemoteDescription(new RTCSessionDescription(data));
           }else if(data.type=="candidate"){
 
@@ -179,10 +223,49 @@ export default {
       }
     },
   created() {
+    //this.bitrateSeries=new TimelineDataSeries();
+    //this.bitrateGraph=new TimelineGraphView('bitrateGraph','bitrateCanvas');
+    //this.bitrateGraph.updateEndDate();
   },
   mounted() {
     this.localVideo = document.getElementById("localVideo");
     this.remoteVideo = document.getElementById("remoteVideo");
+    setInterval(()=>{
+      if(!this.pc){
+        return ;
+      }
+      var vsender=null;
+      var senders=this.pc.getSenders();
+      senders.forEach(sender => {
+        if(sender && sender.track.kind === "video"){
+          vsender=sender;
+        }
+      })
+      if(!vsender){
+        return ;
+      }
+      vsender.getStats().then((reports)=>{
+        reports.forEach((report)=>{
+          if(report.type === "outbound-rtp"){
+            if(report.isRemote){
+              return ;
+            }
+            var curTs=report.timestamp;
+            var bytes=report.bytesSent;
+            var packets=report.packetsSent;
+            if(this.lastResult &&  this.lastResult.has(report.id)){
+              var nowBitrate=8*(bytes-this.lastResult.get(report.id).bytesSent)/(curTs-this.lastResult.get(report.id).timestamp);
+              console.log("nowBitrate:"+nowBitrate);
+              var nowPackets=packets-this.lastResult.get(report.id).packetsSent;
+              console.log("nowPackets:"+nowPackets);
+            }
+          }
+        })
+        this.lastResult=reports;
+      }).catch((err)=>{
+        console.log(err);
+      })
+    },1000)
   },
   methods: {
     //拿到媒体流
@@ -319,6 +402,33 @@ export default {
         })
       }
       this.localStream=null;
+    },
+    //改变码率
+    changeBW(){
+      console.log("BW is changed :",this.selectedBW);
+      if(!this.selectedBW){ //没选择码率直接返回
+        return ;
+      }
+      var vsender=null;
+      var senders=this.pc.getSenders();
+      senders.forEach(sender => {
+        if(sender && sender.track.kind === "video"){
+          vsender=sender;
+        }
+      })
+
+      var parameters=vsender.getParameters();
+      if(!parameters.encodings){
+        return ;
+      }
+      parameters.encodings[0].maxBitrate=this.selectedBW*1000;
+
+      vsender.setParameters(parameters).then(()=>{
+        console.info("success setParameters")
+      }).catch((err)=>{
+        console.log(err);
+      })
+
     }
     
   }

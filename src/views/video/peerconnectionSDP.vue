@@ -2,7 +2,7 @@
 <template>
   <div id="container">
     <h1><a href="//webrtc.github.io/samples/" title="WebRTC samples homepage">WebRTC samples</a>
-        <span>Peer connection</span>
+        <span>Peer connection SDP信息</span>
     </h1>
    <div> 
         <button id="startButton" @click="start">Start</button>
@@ -13,13 +13,13 @@
     <div class="content">
       <div class="item">
         <h2>local:</h2>
-        <video id="localVideo" playsinline autoplay muted></video>
+        <video id="localVideo" playsinline autoplay muted width="340px" height="180px"></video>
         <h2>offer SDP:</h2>
         <textarea name="" id="offer" cols="50" rows="10" :value="offerSDP"></textarea>
       </div>
       <div class="item"> 
         <h2>remote:</h2>
-        <video id="remoteVideo" playsinline autoplay></video>
+        <video id="remoteVideo" playsinline autoplay width="340px" height="180px"></video>
         <h2>answer SDP:</h2>
         <textarea name="" id="answer" cols="50" rows="10" :value="answerSDP"></textarea>
       </div>
@@ -44,8 +44,8 @@ export default {
         echoCancellation:true
       },
       video: {
-        width:340,
-        height:180,
+        width:1920,
+        height:1080,
         frameRate:30,
         facingMode:"environment"
       }
@@ -112,7 +112,6 @@ export default {
      this.localStream.getTracks().forEach((track)=>{
        pc1.addTrack(track,this.localStream)
      })
-
      
      //本地创建offer,进行媒体协商流程
      pc1.createOffer(_this.offerOptions).then((desc)=>{

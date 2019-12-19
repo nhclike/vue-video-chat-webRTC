@@ -1,12 +1,32 @@
 
 <template>
   <div id="container">
-   <h2>一对一视频通讯</h2>
+    <h2>webRTC发送非音视频数据</h2>
    <div> 
        <button id="connServer" :disabled="connectFlag" @click="connServer">Connect Sig Server</button>
        <button id="leave" :disabled="leaveFlag" @click="leave">leave</button>
 
     </div>
+    <div>
+       <h3>BindWidth</h3>
+       <select name="" id="bindwidth" @change="changeBW" v-model="selectedBW" :disabled="changeBWFlag">
+          <option disabled value="">请选择</option>
+         <option value="2000">2000</option>
+         <option value="1000">1000</option>
+         <option value="500">500</option>
+         <option value="100">100</option>
+       </select>
+       kbps
+        <br>
+       <span>Selected:{{selectedBW}}</span>
+    </div>
+    <div>
+      <h2>chat:</h2>
+      <textarea name="" cols="30" rows="10" id="chatText" v-model="chatTextContent"></textarea>
+      <textarea name="" cols="30" rows="10" id="sendText" :disabled="sendMsgFlag" placeholder="请输入要发送的数据" v-model="sendTextStr"></textarea>
+      <button id="send" @click="sendText" :disabled="sendMsgFlag">send</button>
+    </div>
+
     <div class="content">
       <div class="item">
         <h2>local:</h2>
@@ -23,6 +43,10 @@
 </template>
 <script>
 /**
+ * chrome中webRTC调试
+ * chrome://webrtc-internals
+ * 
+ * 对应后台oneToOne.js
  * 1、消息通讯的连接建立要在音视频数据获取之后，否则会导致有可能绑定音视频流失败
  * 2、当一端退出房间后另外一端的PeerConnection要关闭重建，否则与新用户互通时媒体协商会失败
  * 3、异步事件处理
@@ -62,7 +86,19 @@ export default {
     pc:null,
     state:"init",
 
-    roomid:'111111'
+    roomid:'111111',
+    //改变码率
+    selectedBW:'',
+    /**
+     * 1默认不能改变码率，协商成功后打开
+     * 2对于主叫方是接收到被叫方发送的answer后
+     * 3对于被叫方是创建answer成功后
+     * **/
+    changeBWFlag:true,
+    sendTextStr:'',
+    chatTextContent:'',
+    dc:null,   //非音视频数据的通道对象，在创建pc后创建
+    sendMsgFlag:true
   }),
   sockets:{
       /**
@@ -87,6 +123,11 @@ export default {
         this.state="joined";
         //创建了一个连接，并且将本地获取的音视频数据绑定到连接上，做好媒体协商的前提准备
         this.createPeerConnection();
+        /**
+         * 如果在加入之后且创建pc后就直接创建dc,
+         * 则采取的通讯方式必须为双方都创建dc,指定相同的id，使之可以通讯
+         * **/
+        //this.pc.createDataChannel("chat",{id:0});
         console.log("joined:state=",this.state)
       },
       otherjoin:function (data) {
@@ -100,6 +141,12 @@ export default {
         if(this.state=="joined_unbind"){   
           this.createPeerConnection();
         }
+        /**
+         *dc通讯的第二种方式：
+         * 一方创建dc，另外一方pc监听ondatachannel 事件
+         ***/
+        this.createDataChannel()
+
         //改变状态
         this.state="joined_conn";//加入房间且可以音视频数据交互状态
         //媒体协商,主叫方开始创建offer
@@ -149,13 +196,15 @@ export default {
               }).catch((err)=>{
                 console.log("Failed setLocalDescription",err);
               });
+              this.changeBWFlag=false;
               this.sendMessage(this.roomid,desc);
             }).catch((err)=>{
               console.log("Failed to getAnswer");
               console.log(err);
             });
           }else if(data.type=="answer"){
-            console.log("received answer!")
+            console.log("received answer!");
+            this.changeBWFlag=false;
             this.pc.setRemoteDescription(new RTCSessionDescription(data));
           }else if(data.type=="candidate"){
 
@@ -248,6 +297,35 @@ export default {
       this.closePeerConnection();
       this.closeLocalMedia();
     },
+    //创建数据通道并且绑定事件
+    createDataChannel(){
+      console.log("create createDataChannel!");
+      this.dc=this.pc.createDataChannel("chat");
+      this.dc.onmessage=this.receiveMsg;
+      this.dc.onopen=this.dataChannelStateChange;
+      this.dc.onclose=this.dataChannelStateChange;
+        
+    },
+    receiveMsg(e){
+      var msg=e.data;
+      console.log("data channel onmessage event is active receiveMsg:"+msg);
+      if(msg){
+        this.chatTextContent+='->'+msg+'\r\n';
+      }
+      else{
+        console.error("reveice msg is null");  
+      }
+    },
+    dataChannelStateChange(){
+      var readyState=this.dc.readyState;
+      console.log("cur data channel is:"+readyState);
+      if(readyState==='open'){
+        this.sendMsgFlag=false;
+      }
+      else{
+        this.sendMsgFlag=true;
+      }
+    },
     createPeerConnection(){
       console.log("create RTCPeerConnection!");
       var _this=this;
@@ -295,6 +373,17 @@ export default {
         //     _this.remoteVideo.srcObject = e.streams;
         //   }
         // }
+
+        //一方创建dc时会触发另外一方的ondatachannel 事件
+        this.pc.ondatachannel =(e)=>{
+          console.log("ondatachannel event is active",e);
+          if(!_this.dc){
+            _this.dc=e.channel;
+            _this.dc.onmessage=_this.receiveMsg;
+            _this.dc.onopen=_this.dataChannelStateChange;
+            _this.dc.onclose=_this.dataChannelStateChange;
+          }
+        }
       }
       //将本地采集的数据添加到PeerConnection，这样在做媒体协商的时候就知道有哪些数据（必须先添加数据再做媒体协商）
       if(this.localStream){
@@ -319,6 +408,43 @@ export default {
         })
       }
       this.localStream=null;
+    },
+    //改变码率
+    changeBW(){
+      console.log("BW is changed :",this.selectedBW);
+      if(!this.selectedBW){ //没选择码率直接返回
+        return ;
+      }
+      var vsender=null;
+      var senders=this.pc.getSenders();
+      senders.forEach(sender => {
+        if(sender && sender.track.kind === "video"){
+          vsender=sender;
+        }
+      })
+
+      var parameters=vsender.getParameters();
+      if(!parameters.encodings){
+        return ;
+      }
+      parameters.encodings[0].maxBitrate=this.selectedBW*1000;
+
+      vsender.setParameters(parameters).then(()=>{
+        console.info("success setParameters")
+      }).catch((err)=>{
+        console.log(err);
+      })
+
+    },
+    //发送文本
+    sendText(){
+      var data=this.sendTextStr
+      if(data && this.dc){
+        this.dc.send(data);
+      }
+      this.sendTextStr="";
+      this.chatTextContent+='->'+data+'\r\n';
+
     }
     
   }
