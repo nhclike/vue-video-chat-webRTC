@@ -8,6 +8,7 @@ function resolve(dir) {
   entry: ["@babel/polyfill", "./app/js"],
 }; */
 module.exports = {
+    // publicPath: '/zxzh',
     pluginOptions: {
         // 避免使用变量时每次都要引入
         'style-resources-loader': {
@@ -48,7 +49,6 @@ module.exports = {
             // 使用DefinePlugin暴露的全局变量，需要在eslintrc.js的globals里设置
             pluginsWebpack.push(
                 new webpack.DefinePlugin({
-                    '__PROJECTPATH__': JSON.stringify(''),
                     '__GATEWAYPATH__': JSON.stringify('')
                 })
 
@@ -57,8 +57,7 @@ module.exports = {
             // 为开发环境修改配置...
             pluginsWebpack.push(
                 new webpack.DefinePlugin({
-                    '__PROJECTPATH__': JSON.stringify(''),
-                    '__GATEWAYPATH__': JSON.stringify('/gateway'),
+                    '__GATEWAYPATH__': JSON.stringify(''),
 
                 })
             );
@@ -67,7 +66,7 @@ module.exports = {
     },
     devServer: {
         host: "0.0.0.0",
-        port: 8000, // 端口号
+        port: 80, // 端口号
         https: false, // https:{type:Boolean}
         open: true, //配置自动启动浏览器  http://XXX.XXX.X.XX:7071/rest/XXX/ 
         hotOnly: true, // 热更新

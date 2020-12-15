@@ -3,7 +3,7 @@ const app = express();
 const server = require("http").createServer(app);
 const io = require("socket.io")(server);
 
-const USERCOUNT = 3;
+const USERCOUNT = 0;
 // Chatroom
 
 io.sockets.on("connection", (socket) => {
