@@ -17,7 +17,7 @@
         "express": "^4.16.4",
         "graph.js": "^1.21.1",
         "multer": "^1.4.2",
-        "socket.io": "^2.2.0",
+        "socket.io": "^2.4.0",
         "vue": "^2.6.10",
         "vue-router": "^3.0.1",
         "vue-socket.io": "^3.0.5",
