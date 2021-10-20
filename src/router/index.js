@@ -6,6 +6,6 @@ import CommonRouters from './comm'; // 引入通用模块
 Vue.use(VueRouter);
 export default new VueRouter({
     mode: 'history',
-    base: '/zxzh',
+    //base: '/zxzh',
     routes: RouterConfig.concat(CommonRouters)
 });

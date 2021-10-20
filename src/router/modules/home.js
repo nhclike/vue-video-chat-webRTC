@@ -3,11 +3,7 @@ export default [
 
     { // 默认
         path: '/',
-        redirect: '/login'
+        redirect: '/main'
     },
 
-    { // 管理员首页
-        path: '/main',
-        redirect: '/main/home'
-    }
 ];

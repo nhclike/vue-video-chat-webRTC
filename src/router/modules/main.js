@@ -14,8 +14,8 @@ const Home = () =>
     import ( /* webpackChunkName: "Home" */ '@/views/home/home');
 
 // 视频
-const Video = () =>
-    import ( /* webpackChunkName: "video" */ '@/views/video/video');
+const VideoApi = () =>
+    import ( /* webpackChunkName: "VideoApi" */ '@/views/video/videoApi');
 // 视频互通
 const PeerConnection = () =>
     import ( /* webpackChunkName: "video" */ '@/views/video/peerconnection');
@@ -47,36 +47,25 @@ export default [{
     path: '/main',
     name: 'main',
     component: BasicLayout,
-    children: [{
+    redirect: '/main/video',
+    children: [
+        {
             path: 'error',
             name: 'error',
             component: Error
         },
-        /* 首页管理 */
-        {
-            path: 'home',
-            redirect: 'home/home',
-            component: RouteView,
-            children: [
-                // 首页
-                {
-                    path: 'home',
-                    name: 'home',
-                    component: Home
-                }
-            ]
-        },
+        
         /* 视频 */
         {
             path: 'video',
-            redirect: 'video/video',
+            redirect: 'video/peerConnection',
             component: RouteView,
             children: [
                 // 视频
                 {
-                    path: 'video',
-                    name: 'video',
-                    component: Video
+                    path: 'videoApi',
+                    name: 'videoApi',
+                    component: VideoApi
                 },
                 // 视频互通
                 {
@@ -122,7 +111,7 @@ export default [{
                 },
                 // 聊天
                 {
-                    path: 'chat/',
+                    path: 'chat',
                     name: 'chat',
                     component: Chat
                 },
@@ -133,6 +122,20 @@ export default [{
                     component: File
                 }
             ]
-        }
+        },
+        /* 首页管理 */
+        {
+            path: 'home',
+            redirect: 'home/home',
+            component: RouteView,
+            children: [
+                // 首页
+                {
+                    path: 'home',
+                    name: 'home',
+                    component: Home
+                }
+            ]
+        },
     ]
 }];
