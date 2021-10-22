@@ -7,6 +7,9 @@
     <div class="left">
       <ul>
         <li>
+          <router-link to="videoApi">videoApi</router-link>
+        </li>
+        <li>
           <router-link to="peerConnection">peerConnection</router-link>
         </li>
         <li>

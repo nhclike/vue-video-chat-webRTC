@@ -14,35 +14,14 @@
           <option :value="item.value" v-for="(item,index) in audioOutputOption" :key="index">{{item.text}}</option>
         </select>
       </div>
-      <!-- <div>
-        <label>audio input device</label>
-        <select id="audioInput">
-          
-        </select>
-      </div> -->
+   
       <div>
         <label>video Source</label>
         <select id="videoSource">
           <option :value="item.value" v-for="(item,index) in videoSourceOption" :key="index">{{item.text}}</option>
         </select>
       </div>
-      <!-- <div>
-        <label>video input device</label>
-        <select id="videoInput">
-          
-        </select>
-      </div> -->
-      
-      <!-- <div>
-        <label>Filter</label>
-        <select id="filter">
-          <option value="none">None</option>
-          <option value="blur">blur</option>
-          <option value="grayscale">grayscale</option>
-          <option value="invert">invert</option>
-          <option value="sepia">sepia</option>
-        </select>
-      </div> -->
+     
       <table>
         <tr>
           <td>
